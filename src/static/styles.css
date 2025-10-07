@@ -88,6 +88,18 @@ section h3 {
   border-radius: 12px;
   font-size: 0.9em;
   color: #1a237e;
+  position: relative;
+}
+
+.delete-participant {
+  cursor: pointer;
+  margin-left: 6px;
+  color: #c62828;
+  opacity: 0.7;
+}
+
+.delete-participant:hover {
+  opacity: 1;
 }
 
 .participants-header {

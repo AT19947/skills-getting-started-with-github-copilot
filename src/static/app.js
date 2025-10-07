@@ -64,7 +64,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 <p><strong>Available Spots:</strong> ${details.max_participants - details.participants.length} of ${details.max_participants}</p>
                 <div class="participants-header">Current Participants:</div>
                 <ul class="participants-list">
-                    ${details.participants.map(email => `<li>${email}</li>`).join('')}
+                    ${details.participants.map(email => `
+                        <li>
+                            ${email}
+                            <span class="delete-participant" title="Unregister participant" data-activity="${name}" data-email="${email}">
+                                ✕
+                            </span>
+                        </li>
+                    `).join('')}
                 </ul>
             `;
             activitiesList.appendChild(card);
@@ -89,12 +96,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const messageDiv = document.getElementById("message");
 
     try {
-        const response = await fetch(`/activities/${encodeURIComponent(activity)}/signup`, {
+        const response = await fetch(`/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `email=${encodeURIComponent(email)}`,
+            }
         });
 
         if (!response.ok) {
@@ -110,6 +116,36 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.className = 'message error';
     }
     messageDiv.classList.remove('hidden');
+  });
+
+  // Handle participant deletion
+  document.addEventListener('click', async (event) => {
+    if (event.target.classList.contains('delete-participant')) {
+      const activity = event.target.dataset.activity;
+      const email = event.target.dataset.email;
+      
+      try {
+        const response = await fetch(`/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+
+        messageDiv.textContent = 'Successfully unregistered from the activity!';
+        messageDiv.className = 'message success';
+        // Reload activities to show updated participants
+        loadActivities();
+      } catch (error) {
+        messageDiv.textContent = error.message;
+        messageDiv.className = 'message error';
+      }
+      messageDiv.classList.remove('hidden');
+    }
   });
 
   // Load activities when page loads
